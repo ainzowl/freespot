@@ -43,11 +43,22 @@ jobs:
           touch _site/.nojekyll
 
       - name: Configure Pages
+        id: pages
         uses: actions/configure-pages@v5
         with:
-          # Without this the action fails on a repo that has never had Pages
-          # enabled ("Get Pages site failed"), which is the default state here.
+          # Try to turn Pages on if it has never been enabled. This succeeds when
+          # the repository's workflow permissions allow it, and fails otherwise:
+          # creating a Pages site needs admin rights the GITHUB_TOKEN does not
+          # have. The next step turns that failure into an actionable message
+          # instead of "Resource not accessible by integration".
           enablement: true
+        continue-on-error: true
+
+      - name: Explain how to enable Pages
+        if: steps.pages.outcome == 'failure'
+        run: |
+          echo "::error title=GitHub Pages is not enabled for this repo::Open https://github.com/${{ github.repository }}/settings/pages and set Source to 'GitHub Actions', then re-run this workflow (Actions tab -> Deploy to GitHub Pages -> Re-run jobs). If the source option is not available, also check Settings -> Actions -> General -> Workflow permissions and select 'Read and write permissions'."
+          exit 1
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
