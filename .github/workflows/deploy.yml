@@ -4,8 +4,9 @@ name: Deploy to GitHub Pages
 # step, no secrets. The download provider key ships inside `assets/js/config.js`
 # on purpose, so it is public either way and Pages changes nothing about that.
 #
-# One-time setup: Settings → Pages → Build and deployment → Source → GitHub
-# Actions. The site then lands at https://<user>.github.io/<repo>/.
+# Pages does not have to be enabled by hand: `enablement: true` below turns it on
+# with "GitHub Actions" as the source the first time this runs. The site then
+# lands at https://<user>.github.io/<repo>/.
 
 on:
   push:
@@ -36,14 +37,17 @@ jobs:
           mkdir -p _site
           # The app root is the site. Only the browser-facing files are copied:
           # `server/` is a local dev helper and must never be published.
-          cp index.html setup.html manifest.json sw.js README.md _site/
+          cp index.html setup.html manifest.json sw.js _site/
           cp -r assets _site/assets
-          # Tells Pages not to run Jekyll. Nothing here starts with `_`, but this
-          # keeps `.github/` and `server/` from being treated as content either.
+          # Tells Pages not to run Jekyll over the artifact.
           touch _site/.nojekyll
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          # Without this the action fails on a repo that has never had Pages
+          # enabled ("Get Pages site failed"), which is the default state here.
+          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
