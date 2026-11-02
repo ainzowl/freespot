@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c0b0d" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="FreePot" />
+  <meta name="description" content="FreePot — a quiet place for loud music." />
+  <title>FreePot</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-180.png" />
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/artwork.css" />
+  <link rel="stylesheet" href="assets/css/chrome.css" />
+  <link rel="stylesheet" href="assets/css/home.css" />
+  <link rel="stylesheet" href="assets/css/lists.css" />
+  <link rel="stylesheet" href="assets/css/player.css" />
+  <link rel="stylesheet" href="assets/css/overlays.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body data-view="home">
+
+  <div class="ambient" aria-hidden="true"></div>
+
+  <!-- ============ APP SHELL ============ -->
+  <main class="wrap">
+
+    <!-- HEADER -->
+    <header class="header" id="app-header">
+      <div class="header-top">
+        <div class="brand">
+          <span class="brand-disc" aria-hidden="true"></span>
+          <p class="brand-name">FreePot</p>
+        </div>
+        <button class="avatar-btn btn-press" onclick="__goTab('device')" aria-label="Device and storage">
+          <i data-lucide="sliders-horizontal" style="width:15px;height:15px"></i>
+        </button>
+      </div>
+      <h1 id="header-greeting" class="display greeting">Good evening.</h1>
+      <p class="greeting-sub">A quiet place for loud music.</p>
+    </header>
+
+    <!-- ============ HOME ============ -->
+    <section id="view-home" class="view">
+
+      <div class="quick-grid" style="margin-top:4px">
+        <button onclick="__playLiked()" class="quick btn-press">
+          <span class="quick-art"><img data-art="liked" alt="" draggable="false" /><i data-lucide="heart" style="fill:currentColor"></i></span>
+          <span class="quick-label">Liked</span>
+        </button>
+        <button onclick="__playShuffle()" class="quick btn-press">
+          <span class="quick-art"><img data-art="shuffle" alt="" draggable="false" /><i data-lucide="shuffle"></i></span>
+          <span class="quick-label">Shuffle</span>
+        </button>
+        <button onclick="__searchTrending()" class="quick btn-press">
+          <span class="quick-art"><img data-art="genre:pop" alt="" draggable="false" /><i data-lucide="trending-up"></i></span>
+          <span class="quick-label">Trending</span>
+        </button>
+        <button onclick="__goTab('search')" class="quick btn-press">
+          <span class="quick-art"><img data-art="search" alt="" draggable="false" /><i data-lucide="search"></i></span>
+          <span class="quick-label">Search</span>
+        </button>
+      </div>
+
+      <div class="section hidden" id="recent-section">
+        <div class="section-head">
+          <h2 class="section-title">Recently played</h2>
+          <button class="section-link" onclick="__playShuffle()">Shuffle all</button>
+        </div>
+        <div id="recent-row" class="rail snap-row no-scrollbar hscroll" style="padding-inline:0"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2 class="section-title">Trending now</h2>
+          <button class="section-link" onclick="__openNowPlaying()">Now playing</button>
+        </div>
+        <div id="top-list" class="track-list"></div>
+      </div>
+
+      <p class="label" style="text-align:center;margin-top:34px;color:var(--faint)">FreePot · for the love of it</p>
+    </section>
+
+    <!-- ============ SEARCH ============ -->
+    <section id="view-search" class="view hidden">
+      <div class="tab-head">
+        <div>
+          <h1 class="display page-title">Search</h1>
+          <p class="tab-head-sub">Find a song, artist or playlist</p>
+        </div>
+      </div>
+      <div style="padding:18px 20px 0">
+        <div class="search-field">
+          <i data-lucide="search"></i>
+          <input id="search-input" placeholder="Songs, artists, albums…" autocomplete="off" spellcheck="false" />
+        </div>
+      </div>
+      <div id="search-results" class="hidden" style="padding:8px 20px 0"></div>
+      <div id="browse-wrap" style="padding:26px 20px 0">
+        <h2 class="label" style="margin:0 0 14px;color:var(--faint)">Browse all</h2>
+        <div id="browse-grid" class="genre-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ LIBRARY ============ -->
+    <section id="view-library" class="view hidden">
+      <div class="tab-head">
+        <div>
+          <h1 class="display page-title">Library</h1>
+          <p class="tab-head-sub" id="library-sub">Everything saved on this device</p>
+        </div>
+        <button class="round-btn" onclick="__createPlaylistPrompt()" aria-label="New playlist">
+          <i data-lucide="plus"></i>
+        </button>
+      </div>
+      <div class="lib-chips no-scrollbar" style="margin-top:20px">
+        <button class="chip active" data-lib="playlists" onclick="__openLibTab('playlists')">Playlists</button>
+        <button class="chip" data-lib="songs" onclick="__openLibTab('songs')">Songs</button>
+        <button class="chip" data-lib="artists" onclick="__openLibTab('artists')">Artists</button>
+        <button class="chip" data-lib="albums" onclick="__openLibTab('albums')">Albums</button>
+        <button class="chip" data-lib="downloads" onclick="__openLibTab('downloads')">Downloads</button>
+      </div>
+      <div id="lib-content" style="padding:16px 20px 0"></div>
+    </section>
+
+    <!-- ============ THIS DEVICE ============ -->
+    <section id="view-device" class="view hidden">
+      <div class="tab-head">
+        <div>
+          <h1 class="display page-title">This device</h1>
+          <p class="tab-head-sub">On-device library · no account</p>
+        </div>
+      </div>
+
+      <p style="margin:12px 20px 0;font-size:11px;line-height:1.65;color:var(--faint)">
+        Everything you save lives in this browser. No sign-in, nothing synced, nothing sent anywhere.
+      </p>
+
+      <div class="stats" style="margin-top:22px;padding-inline:20px">
+        <div class="stat-card"><p class="stat-num" id="stat-liked">0</p><p class="stat-label">Liked</p></div>
+        <div class="stat-card"><p class="stat-num" id="stat-playlists">6</p><p class="stat-label">Sets</p></div>
+        <div class="stat-card"><p class="stat-num" id="stat-followed">0</p><p class="stat-label">Following</p></div>
+        <div class="stat-card"><p class="stat-num" id="stat-offline">0</p><p class="stat-label">Offline</p></div>
+      </div>
+
+      <div style="margin-top:22px;padding-inline:20px">
+        <button onclick="__openPlaylist('liked')" class="list-row">
+          <div class="cover cover-ring list-art"><img data-art="liked" alt="" draggable="false" /></div>
+          <div class="list-meta">
+            <p class="list-title">Liked Songs</p>
+            <p class="list-sub" id="liked-sub">Playlist · 0 songs</p>
+          </div>
+          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+        </button>
+        <button onclick="__openLibTab('downloads');__goTab('library')" class="list-row">
+          <div class="cover cover-ring list-art"><img data-art="downloads" alt="" draggable="false" /></div>
+          <div class="list-meta">
+            <p class="list-title">Downloads</p>
+            <p class="list-sub" id="dl-sub">Listen offline, anywhere</p>
+          </div>
+          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+        </button>
+        <button onclick="__openLibTab('artists');__goTab('library')" class="list-row">
+          <div class="cover cover-ring list-art" style="border-radius:50%"><img data-art="followed" alt="" draggable="false" /></div>
+          <div class="list-meta">
+            <p class="list-title">Followed artists</p>
+            <p class="list-sub" id="followed-sub">Artists you keep coming back to</p>
+          </div>
+          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+        </button>
+      </div>
+
+      <div class="settings" style="margin:22px 20px 0">
+        <div class="settings-row">
+          <div class="settings-icon"><i data-lucide="wifi-off"></i></div>
+          <div style="flex:1">
+            <p class="settings-title" style="margin:0">Offline mode</p>
+            <p class="settings-hint">Only play downloaded songs</p>
+          </div>
+          <button onclick="__offlineToggle()" id="offline-switch" class="chip">OFF</button>
+        </div>
+        <button onclick="__openLibTab('downloads');__goTab('library')" class="settings-row">
+          <div class="settings-icon"><i data-lucide="download"></i></div>
+          <div style="flex:1">
+            <p class="settings-title" style="margin:0">Downloads</p>
+            <p class="settings-hint" id="download-count-hint">No tracks downloaded</p>
+          </div>
+          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+        </button>
+        <button onclick="__openKeySheet()" class="settings-row">
+          <div class="settings-icon"><i data-lucide="key-round"></i></div>
+          <div style="flex:1">
+            <p class="settings-title" style="margin:0">Download provider</p>
+            <p class="settings-hint">Optional - needs a paid key</p>
+          </div>
+          <span id="provider-hint" class="settings-value">Not configured</span>
+          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+        </button>
+        <div class="settings-row">
+          <div class="settings-icon"><i data-lucide="database"></i></div>
+          <div style="flex:1">
+            <p class="settings-title" style="margin:0">Storage used</p>
+            <p class="settings-hint" id="storage-hint">Calculating…</p>
+          </div>
+        </div>
+        <button onclick="__openStorageSheet()" class="settings-row">
+          <div class="settings-icon"><i data-lucide="eraser"></i></div>
+          <span class="settings-title">Storage options</span>
+          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+        </button>
+      </div>
+
+      <p class="label" style="text-align:center;margin-top:26px;color:var(--faint)">FreePot · built for quiet listening</p>
+    </section>
+
+  </main>
+
+  <!-- ============ MINI PLAYER ============ -->
+  <div id="mini-player" class="mini-wrap hidden">
+    <div class="mini btn-press" onclick="__openNowPlaying()" role="button" tabindex="0">
+      <div class="mini-bar"><div id="mini-progress-bar"></div></div>
+      <div id="mini-art" class="cover cover-ring mini-art"></div>
+      <div class="mini-meta">
+        <p class="mini-title" id="mini-title">Title</p>
+        <p class="mini-sub" id="mini-artist">Artist</p>
+      </div>
+      <span class="mini-mode hidden" id="mini-mode" aria-hidden="true"><i data-lucide="shuffle"></i></span>
+      <button class="mini-btn mini-like" id="mini-like" onclick="event.stopPropagation();__toggleLike()" aria-label="Like">
+        <i data-lucide="heart" id="mini-like-icon"></i>
+      </button>
+      <button class="mini-btn" onclick="event.stopPropagation();__togglePlay()" aria-label="Play or pause">
+        <i data-lucide="pause" id="mini-play-icon" style="fill:currentColor"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ DETAIL LAYER ============ -->
+  <div id="detail-layer" class="detail hidden">
+    <header class="detail-head">
+      <button class="back-btn" onclick="__backPage()" aria-label="Back"><i data-lucide="arrow-left"></i></button>
+      <h2 id="detail-title">Title</h2>
+      <button id="detail-more" class="back-btn hidden" aria-label="More"><i data-lucide="more-horizontal"></i></button>
+    </header>
+    <div id="detail-content" class="detail-content"></div>
+  </div>
+
+  <!-- ============ NOW PLAYING ============ -->
+  <div id="now-playing" class="np hidden">
+    <img id="np-bg" class="np-bg" alt="" draggable="false" />
+    <div class="np-scrim"></div>
+
+    <div class="np-inner">
+      <div class="np-top">
+        <button class="np-top-btn btn-press" onclick="__closeNowPlaying()" aria-label="Close"><i data-lucide="chevron-down"></i></button>
+        <div class="np-source">
+          <span>Playing from</span>
+          <strong id="np-source">Queue</strong>
+        </div>
+        <button class="np-top-btn btn-press" onclick="__npMore()" aria-label="More"><i data-lucide="more-horizontal"></i></button>
+      </div>
+
+      <div class="np-stage">
+        <div class="np-art-wrap">
+          <div id="np-art" class="cover np-art"></div>
+        </div>
+      </div>
+
+      <div class="np-info">
+        <div class="np-info-text">
+          <h2 class="np-title" id="np-title">Title</h2>
+          <p class="np-sub" id="np-sub">Artist</p>
+          <p class="np-mode-label hidden" id="np-mode-label"></p>
+        </div>
+        <button class="np-like" id="np-like" onclick="__toggleLike()" aria-label="Like">
+          <i data-lucide="heart" id="np-like-icon"></i>
+        </button>
+      </div>
+
+      <div class="np-error hidden" id="np-error">
+        <div class="np-error-icon"><i data-lucide="alert-triangle"></i></div>
+        <div class="np-error-text">
+          <p id="np-error-text">Failed to play this song</p>
+          <p id="np-error-sub" class="np-error-sub">Download it to play from your device.</p>
+        </div>
+        <button class="np-error-btn" id="np-error-download" onclick="__downloadCurrent()">
+          <i data-lucide="download"></i> Download
+        </button>
+      </div>
+
+      <div class="np-progress">
+        <div id="progress-track">
+          <div class="progress-rail"></div>
+          <div id="progress-buffer"></div>
+          <div id="progress-bar"><span class="progress-thumb"></span></div>
+        </div>
+        <div class="progress-times">
+          <span id="np-current">0:00</span>
+          <span id="np-duration">0:00</span>
+        </div>
+      </div>
+
+      <div class="np-controls">
+        <button class="np-btn mode btn-press" id="np-shuffle-btn" onclick="__toggleShuffle();syncModeIcons()" aria-label="Shuffle">
+          <i data-lucide="shuffle" id="np-shuffle-icon"></i>
+        </button>
+        <button class="np-btn btn-press" onclick="__prevTrack()" aria-label="Previous"><i data-lucide="skip-back" style="fill:currentColor"></i></button>
+        <button class="np-play btn-press" onclick="__togglePlay()" aria-label="Play or pause"><i data-lucide="pause" id="big-play-icon" style="fill:currentColor"></i></button>
+        <button class="np-btn btn-press" onclick="__nextTrack()" aria-label="Next"><i data-lucide="skip-forward" style="fill:currentColor"></i></button>
+        <button class="np-btn mode btn-press" id="np-repeat-btn" onclick="__toggleRepeat();syncModeIcons()" aria-label="Repeat">
+          <i data-lucide="repeat" id="np-repeat-icon"></i>
+        </button>
+      </div>
+
+      <div class="np-bottom">
+        <button class="np-bottom-btn btn-press" onclick="__openQueue()" aria-label="Queue"><i data-lucide="list-music"></i></button>
+        <button class="np-bottom-btn btn-press" onclick="__showLyrics()" aria-label="Lyrics"><i data-lucide="scroll-text"></i></button>
+        <div class="np-volume">
+          <i data-lucide="volume-1"></i>
+          <input id="volume-slider" type="range" min="0" max="100" value="80" class="vol" aria-label="Volume" />
+        </div>
+        <button class="np-bottom-btn btn-press" onclick="__showAbout()" aria-label="Description"><i data-lucide="info"></i></button>
+        <button class="np-bottom-btn btn-press" onclick="__shareCurrent()" aria-label="Share"><i data-lucide="share-2"></i></button>
+      </div>
+    </div>
+
+    <div id="np-queue" class="np-queue hidden">
+      <div class="np-queue-head">
+        <div class="grabber"></div>
+        <div class="np-queue-title">
+          <p>Up next</p>
+          <button class="icon-ghost" onclick="__closeQueue()" aria-label="Close queue"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+        </div>
+      </div>
+      <div id="np-queue-list" class="np-queue-list no-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- ============ BOTTOM DOCK ============ -->
+  <nav class="dock-wrap">
+    <div class="dock">
+      <button data-tab="home" class="tab-btn active">
+        <i data-lucide="house"></i><span>Home</span>
+      </button>
+      <button data-tab="search" class="tab-btn">
+        <i data-lucide="search"></i><span>Search</span>
+      </button>
+      <button data-tab="library" class="tab-btn">
+        <i data-lucide="library-big"></i><span>Library</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============ BOTTOM SHEET ============ -->
+  <div id="sheet" class="sheet hidden">
+    <div class="sheet-backdrop" onclick="__closeSheet()"></div>
+    <div class="sheet-panel">
+      <div class="sheet-head">
+        <div class="grabber"></div>
+        <div class="sheet-title">
+          <p id="sheet-title">Menu</p>
+          <button class="icon-ghost" onclick="__closeSheet()" aria-label="Close"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+        </div>
+      </div>
+      <div id="sheet-body" class="sheet-body no-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL ============ -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="__closeModal()"></div>
+    <div class="modal-card">
+      <p id="modal-title" class="modal-title">New playlist</p>
+      <input id="modal-input" class="modal-input" placeholder="Name" />
+      <div class="modal-actions">
+        <button onclick="__closeModal()" class="modal-cancel">Cancel</button>
+        <button onclick="__saveModal()" class="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div id="toast" class="toast hidden">
+    <div class="toast-inner">
+      <i id="toast-icon" data-lucide="check"></i>
+      <span id="toast-msg">Saved</span>
+    </div>
+  </div>
+
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "name": "FreePot",
+  "short_name": "FreePot",
+  "description": "A quiet place for loud music.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#0c0b0d",
+  "theme_color": "#0c0b0d",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    { "src": "assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Liked Songs",
+      "short_name": "Liked",
+      "description": "Play your liked songs",
+      "url": "./?tab=library",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Search",
+      "short_name": "Search",
+      "description": "Find something to play",
+      "url": "./?tab=search",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

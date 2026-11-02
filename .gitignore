@@ -1,0 +1,10 @@
+# Local dev only.
+server/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+
+# Dependencies (installed under server/ for the dev helper)
+node_modules/

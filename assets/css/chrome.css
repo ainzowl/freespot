@@ -1,0 +1,45 @@
+/* ---------- header ---------- */
+.header { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); padding-inline: 20px; }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.brand { display: inline-flex; align-items: center; gap: 9px; }
+.brand-disc {
+  width: 17px; height: 17px; border-radius: 50%;
+  background: conic-gradient(from 40deg, var(--copper-soft), var(--copper-deep), var(--copper), var(--copper-soft));
+  position: relative;
+  box-shadow: 0 0 18px rgba(217, 160, 102, 0.25);
+}
+.brand-disc::after {
+  content: ''; position: absolute; inset: 5.5px; border-radius: 50%; background: var(--ink);
+}
+.brand-name { font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+
+.avatar-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: rgba(243, 237, 227, 0.04);
+  display: grid; place-items: center; color: var(--muted);
+}
+
+.greeting { margin: 22px 0 0; font-size: 38px; line-height: 1.02; color: var(--paper); }
+.greeting-sub { margin-top: 7px; font-size: 12px; color: var(--faint); letter-spacing: 0.01em; }
+
+/* Compact header used by non-home tabs */
+.tab-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 0;
+}
+.tab-head .page-title { margin: 0; font-size: 34px; }
+.tab-head-sub { margin: 7px 0 0; font-size: 10.5px; color: var(--faint); }
+
+/* ---------- sections ---------- */
+.section { margin-top: 34px; padding-inline: 20px; }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.section-title { margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; letter-spacing: -0.01em; line-height: 1; }
+.section-link {
+  border: 0; background: none; padding: 0;
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--copper);
+}

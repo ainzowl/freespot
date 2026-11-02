@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c0b0d" />
+  <meta name="description" content="FreePot setup — the optional download provider key." />
+  <title>Setup · FreePot</title>
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/artwork.css" />
+  <link rel="stylesheet" href="assets/css/chrome.css" />
+  <link rel="stylesheet" href="assets/css/home.css" />
+  <link rel="stylesheet" href="assets/css/lists.css" />
+  <link rel="stylesheet" href="assets/css/player.css" />
+  <link rel="stylesheet" href="assets/css/overlays.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .page { position: relative; z-index: 10; width: 100%; max-width: 430px; margin: 0 auto; padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px calc(env(safe-area-inset-bottom, 0px) + 40px); }
+    .card { border: 1px solid var(--line); border-radius: 22px; background: rgba(243, 237, 227, 0.018); padding: 18px; }
+    .card + .card { margin-top: 14px; }
+    .status { display: flex; align-items: center; gap: 13px; }
+    .status-icon { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: 13px; border: 1px solid var(--line); background: var(--card); color: var(--muted); }
+    .status-icon i { width: 18px; height: 18px; }
+    .status-icon.ok { color: #7ec8a0; border-color: rgba(126, 200, 160, 0.25); background: rgba(126, 200, 160, 0.08); }
+    .status-title { margin: 0; font-size: 13px; font-weight: 600; }
+    .status-sub { margin: 4px 0 0; font-size: 10.5px; line-height: 1.5; color: var(--faint); }
+    .field-note { margin: 8px 0 0; font-size: 10.5px; line-height: 1.65; color: var(--faint); }
+    .input { width: 100%; margin-top: 12px; border-radius: 13px; border: 1px solid var(--line); background: var(--ink); padding: 13px 14px; color: var(--paper); font-family: inherit; font-size: 16px; outline: none; }
+    .input:focus { border-color: rgba(217, 160, 102, 0.45); box-shadow: 0 0 0 4px rgba(217, 160, 102, 0.07); }
+    .input::placeholder { color: #4e4a44; }
+    .btn-row { display: flex; gap: 9px; margin-top: 12px; }
+    .primary { display: inline-flex; flex: 1; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px; background: var(--copper); color: #1a130d; padding: 13px; font-family: inherit; font-size: 12px; font-weight: 700; box-shadow: 0 12px 30px -10px rgba(217, 160, 102, 0.5); }
+    .ghost { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 999px; border: 1px solid var(--line); background: none; color: var(--faint); }
+    .ghost i { width: 18px; height: 18px; }
+    .back { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: rgba(243, 237, 227, 0.03); color: var(--paper); text-decoration: none; }
+    .back i { width: 17px; height: 17px; }
+    .steps { margin: 10px 0 0; padding-left: 16px; font-size: 11px; line-height: 1.75; color: var(--muted); }
+    .steps li { margin-bottom: 4px; }
+    .warn { display: flex; gap: 9px; margin-top: 14px; border-radius: 14px; border: 1px solid rgba(217, 160, 102, 0.18); background: rgba(217, 160, 102, 0.06); padding: 12px 13px; font-size: 10.5px; line-height: 1.65; color: var(--copper-soft); }
+    .warn i { width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px; }
+  </style>
+</head>
+<body>
+
+  <div class="ambient" aria-hidden="true"></div>
+
+  <div class="page">
+    <header style="display:flex;align-items:center;gap:12px">
+      <a href="./" class="back btn-press" aria-label="Back"><i data-lucide="arrow-left"></i></a>
+      <div style="min-width:0">
+        <h1 class="display" style="margin:0;font-size:24px;line-height:1">Setup</h1>
+        <p class="label" style="margin:6px 0 0;color:var(--faint)">Nothing to configure</p>
+      </div>
+    </header>
+
+    <p style="margin:14px 2px 0;font-size:11px;line-height:1.7;color:var(--faint)">
+      Search, browsing and playback work out of the box — no account, no API key, no server.
+      The only optional key is for saving tracks offline.
+    </p>
+
+    <div class="card" style="margin-top:20px">
+      <div class="status">
+        <div class="status-icon ok"><i data-lucide="check-circle-2"></i></div>
+        <div style="min-width:0;flex:1">
+          <p class="status-title">Playback and search</p>
+          <p class="status-sub">Ready — no key needed</p>
+        </div>
+      </div>
+      <p class="field-note">
+        Songs stream through YouTube's own player. Search, artists, playlists and trending come from
+        public Piped instances. Neither asks you for a token.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="status">
+        <div id="provider-icon" class="status-icon ok"><i data-lucide="key-round"></i></div>
+        <div style="min-width:0;flex:1">
+          <p class="status-title">Download provider key</p>
+          <p class="status-sub" id="provider-sub">Using the built-in key · optional</p>
+        </div>
+      </div>
+      <p class="field-note">
+        From <span style="color:var(--muted)">video-download-api.com</span>. A built-in key ships with
+        the app, so downloads work with nothing to configure. It is only a <em>fallback</em> — free
+        public mirrors are tried first, so most tracks cost nothing.
+      </p>
+      <input id="provider-key" class="input" placeholder="Leave empty to keep the built-in key" autocomplete="off" spellcheck="false" />
+      <div class="btn-row">
+        <button class="primary btn-press" onclick="saveProvider()">
+          <i data-lucide="save" style="width:14px;height:14px"></i> Save key
+        </button>
+        <button class="ghost btn-press" onclick="clearProvider()" aria-label="Restore built-in key"><i data-lucide="rotate-ccw"></i></button>
+      </div>
+      <div class="warn">
+        <i data-lucide="shield-check"></i>
+        <span>A key you add stays in this browser. The built-in key is part of the public app, so treat it as shared and replace it if you need your own quota.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <p style="margin:0;font-size:12.5px;font-weight:600">How it works</p>
+      <ol class="steps">
+        <li>Playing a song uses a hidden YouTube player — free, no key, no download.</li>
+        <li>If an owner disabled embedding, the same audio plays through a public mirror instead.</li>
+        <li>Downloading saves the song inside the app so it plays with no signal.</li>
+        <li>Downloads try free public mirrors first; the key above is only a fallback.</li>
+        <li>Downloaded tracks play from the app's own storage instead of YouTube, even offline.</li>
+      </ol>
+    </div>
+
+    <p class="label" style="margin:26px 0 0;text-align:center;color:var(--faint)">FreePot · a quiet place for loud music</p>
+  </div>
+
+  <script type="module">
+    import { DEFAULT_PROVIDER_KEY } from './assets/js/config.js';
+
+    const $ = (s) => document.querySelector(s);
+    const icons = () => lucide.createIcons({ attrs: { 'stroke-width': 1.7 } });
+    const STORE = 'fp_settings_v1';
+
+    const read = () => {
+      try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; }
+    };
+
+    function paint() {
+      const s = read();
+      const custom = String(s.providerKey || '').trim();
+      const usingDefault = !custom;
+
+      $('#provider-key').value = custom;
+      $('#provider-key').placeholder = usingDefault
+        ? 'Leave empty to keep the built-in key'
+        : 'video-download-api key';
+
+      const icon = $('#provider-icon');
+      icon.className = 'status-icon ok' + (usingDefault ? '' : '');
+      icon.innerHTML = usingDefault
+        ? '<i data-lucide="key-round"></i>'
+        : '<i data-lucide="shield-check"></i>';
+
+      const sub = $('#provider-sub');
+      sub.textContent = usingDefault
+        ? `Using the built-in key ${DEFAULT_PROVIDER_KEY.slice(0, 6)}… · optional`
+        : 'Using your own key';
+
+      icons();
+    }
+
+    function write(patch) {
+      localStorage.setItem(STORE, JSON.stringify({ ...read(), ...patch }));
+      paint();
+    }
+
+    window.saveProvider = () => write({ providerKey: $('#provider-key').value.trim() });
+    window.clearProvider = () => write({ providerKey: '' });
+
+    paint();
+  </script>
+</body>
+</html>

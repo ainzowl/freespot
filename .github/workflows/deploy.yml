@@ -1,0 +1,55 @@
+name: Deploy to GitHub Pages
+
+# FreePot is a static app, so deploying is just publishing the folder: no build
+# step, no secrets. The download provider key ships inside `assets/js/config.js`
+# on purpose, so it is public either way and Pages changes nothing about that.
+#
+# One-time setup: Settings → Pages → Build and deployment → Source → GitHub
+# Actions. The site then lands at https://<user>.github.io/<repo>/.
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage the static site
+        run: |
+          mkdir -p _site
+          # The app root is the site. Only the browser-facing files are copied:
+          # `server/` is a local dev helper and must never be published.
+          cp index.html setup.html manifest.json sw.js README.md _site/
+          cp -r assets _site/assets
+          # Tells Pages not to run Jekyll. Nothing here starts with `_`, but this
+          # keeps `.github/` and `server/` from being treated as content either.
+          touch _site/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
