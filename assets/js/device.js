@@ -105,30 +105,56 @@ function escapeAttr(value) {
 export function openKeySheet() {
   const settings = getSettings();
   const isDefault = usingDefaultProviderKey();
-  openSheet('Download provider', () => `
+  const relay = String(settings.downvidRelay || '').trim();
+  const usingLocalRelay = !relay;
+
+  openSheet('Downloads', () => `
     <div style="padding:4px 13px 12px">
-      <p class="sheet-note" style="margin:0 0 14px">Search, browsing and playback work with no keys at all. This one is only for the fallback download source.</p>
-      <div class="provider-state ${isDefault ? '' : 'custom'}">
-        <i data-lucide="${isDefault ? 'key-round' : 'shield-check'}"></i>
-        <span>${isDefault ? 'Using the built-in key' : 'Using your own key'}</span>
+      <div class="provider-state ${usingLocalRelay ? '' : 'custom'}">
+        <i data-lucide="${usingLocalRelay ? 'server' : 'shield-check'}"></i>
+        <span>${usingLocalRelay ? 'Primary source: this server' : 'Primary source: custom relay'}</span>
       </div>
-      <label class="sheet-note" style="display:block;margin:0 0 6px">Your provider key (optional)</label>
+      <p class="sheet-note" style="margin:10px 0 16px">
+        Songs download from DownVid first, then public mirrors, then the paid provider.
+        DownVid needs a relay to reach the browser, so this is where you point the app at one.
+      </p>
+
+      <label class="sheet-note" style="display:block;margin:0 0 6px">DownVid relay URL</label>
+      <input id="sheet-relay-url" class="modal-input" style="margin-top:0"
+        placeholder="https://your-worker.workers.dev"
+        autocomplete="off" spellcheck="false" inputmode="url"
+        value="${escapeAttr(relay)}" />
+      <p class="sheet-note" style="margin:6px 0 16px">
+        Leave empty to use this server's built-in relay (works when the app is run locally).
+        Deploy your own with <strong>relay/README.md</strong>.
+      </p>
+
+      <div class="provider-state ${isDefault ? '' : 'custom'}" style="margin-bottom:12px">
+        <i data-lucide="${isDefault ? 'key-round' : 'shield-check'}"></i>
+        <span>${isDefault ? 'Fallback key: built-in' : 'Fallback key: your own'}</span>
+      </div>
+      <label class="sheet-note" style="display:block;margin:0 0 6px">Fallback provider key (optional)</label>
       <input id="sheet-provider-key" class="modal-input" style="margin-top:0" placeholder="${escapeAttr(isDefault ? 'Leave empty to keep the built-in key' : 'video-download-api key')}" autocomplete="off" value="${escapeAttr(customProviderKey())}" />
-      <p class="sheet-note" style="margin:6px 0 16px">Downloads try free public mirrors first, so most tracks never touch this. Clearing the field restores the built-in key.</p>
+      <p class="sheet-note" style="margin:6px 0 16px">Only used when both DownVid and the public mirrors fail. Clearing the field restores the built-in key.</p>
+
       <button class="btn-copper btn-press" style="width:100%;justify-content:center" onclick="__saveKeys()">Save</button>
     </div>`);
   setTimeout(() => {
-    const input = $('#sheet-provider-key');
+    const input = $('#sheet-relay-url');
     if (input) input.focus();
   }, 80);
 }
 
 export function saveKeys() {
   const provider = $('#sheet-provider-key');
-  updateSettings({ providerKey: provider ? provider.value.trim() : '' });
+  const relay = $('#sheet-relay-url');
+  updateSettings({
+    providerKey: provider ? provider.value.trim() : '',
+    downvidRelay: relay ? relay.value.trim() : '',
+  });
   closeSheet();
   refreshStats();
-  toast(usingDefaultProviderKey() ? 'Using the built-in key' : 'Your key saved', 'check');
+  toast(getSettings().downvidRelay ? 'Relay saved' : "Using this server's relay", 'check');
 }
 
 export function toggleOffline() {

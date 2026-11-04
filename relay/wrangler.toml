@@ -1,0 +1,6 @@
+name = "freepot-relay"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# No bindings, no secrets, no KV: the worker is a pure CORS-adding proxy for the
+# DownVid API. `npx wrangler deploy` is the entire deploy step.

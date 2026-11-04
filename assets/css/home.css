@@ -1,5 +1,11 @@
+/* ==========================================================================
+   FreePot — home tab: hero rail, quick actions, cards, mixes.
+   Spacing here follows the shared scale in base.css (--s1 … --s7) so the
+   sections stack on one rhythm instead of a mix of 6/9/12/14/26px.
+   ========================================================================== */
+
 /* ---------- hero ---------- */
-.hero-rail { display: flex; gap: 12px; padding: 14px 20px 6px; }
+.hero-rail { display: flex; gap: var(--s3); padding: var(--s4) var(--s5) var(--s2); }
 .hero-card {
   position: relative;
   flex: 0 0 auto;
@@ -10,6 +16,8 @@
   border: 1px solid rgba(255, 255, 255, 0.09);
   background: var(--card);
   text-align: left;
+  color: inherit;
+  font-family: inherit;
   box-shadow: 0 30px 70px -28px rgba(0, 0, 0, 0.9);
 }
 .hero-card > img {
@@ -22,17 +30,32 @@
   background: linear-gradient(to top, rgba(5, 5, 7, 0.92) 0%, rgba(5, 5, 7, 0.28) 46%, rgba(5, 5, 7, 0.05) 78%);
 }
 .hero-body { position: absolute; inset-inline: 20px; bottom: 20px; z-index: 3; }
-.hero-title { margin: 8px 0 0; font-size: 34px; line-height: 0.98; color: #fff; }
-.hero-sub { margin: 8px 0 0; font-size: 11.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.62); }
+.hero-title {
+  margin: 8px 0 0; font-size: 34px; line-height: 0.98; color: #fff;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.hero-sub {
+  margin: 8px 0 0; font-size: 11.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.72);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+/* 44px target around a 40px visible disc. */
 .hero-play {
   position: absolute; top: 16px; right: 16px; z-index: 3;
   display: grid; place-items: center;
-  width: 40px; height: 40px; border-radius: 50%;
+  width: var(--tap); height: var(--tap); border-radius: 50%;
+  border: 0; background: none; padding: 0;
+  color: #fff;
+}
+.hero-play::before {
+  content: '';
+  position: absolute; inset: 2px;
+  border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: rgba(8, 8, 10, 0.34);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  color: #fff;
 }
+.hero-play > * { position: relative; z-index: 1; }
 .hero-meta {
   position: absolute; left: 20px; top: 18px; z-index: 3;
   display: inline-flex; align-items: center; gap: 7px;
@@ -44,11 +67,31 @@
 }
 
 /* ---------- quick actions ---------- */
-.quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 26px; padding-inline: 20px; }
-.quick { display: flex; flex-direction: column; align-items: center; gap: 9px; border: 0; background: none; padding: 0; }
+/* Four circular actions on one line inside the 430px shell. The gap used to be
+   6px, which cramped the labels; sizing the discs against the column keeps the
+   row on the same 20px margins as every other section. */
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s3);
+  margin-top: 22px;
+  padding-inline: var(--s5);
+  align-items: start;
+}
+.quick {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s2);
+  border: 0; background: none; padding: 0;
+  font-family: inherit;
+  min-width: 0; width: 100%;
+  /* Whole tile is the target: ~76px wide, 78px tall. */
+  min-height: var(--tap);
+}
 .quick-art {
   position: relative; display: grid; place-items: center;
-  width: 58px; height: 58px; border-radius: 50%; overflow: hidden;
+  width: 58px; height: 58px; max-width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%; overflow: hidden;
   box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 .quick-art > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
@@ -57,29 +100,65 @@
   background: rgba(8, 7, 9, 0.32);
 }
 .quick-art > i, .quick-art > svg { position: relative; z-index: 2; width: 18px; height: 18px; color: var(--paper); filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.8)); }
-.quick-label { font-size: 10.5px; font-weight: 500; color: var(--muted); }
+.quick-label {
+  font-size: 10.5px; font-weight: 500; color: var(--muted);
+  max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.quick:active .quick-art { transform: scale(0.96); }
 
 /* ---------- rail cards ---------- */
-.rail { display: flex; gap: 14px; padding-inline: 20px; }
-.art-card { flex: 0 0 auto; width: 132px; border: 0; background: none; padding: 0; text-align: left; }
+.rail { display: flex; gap: var(--s3); padding-inline: var(--s5); }
+/* The row already has 20px of inline padding from its container in most
+   placements; the inline style="padding-inline:0" on #recent-row keeps the
+   rail flush when a parent pads it. */
+.art-card { flex: 0 0 auto; width: 132px; border: 0; background: none; padding: 0; text-align: left; color: inherit; font-family: inherit; }
 .art-card .cover { width: 100%; aspect-ratio: 1; border-radius: 18px; box-shadow: 0 14px 32px -16px rgba(0, 0, 0, 0.8); }
-.art-card .card-title { margin: 10px 0 0; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.art-card .card-sub { margin: 3px 0 0; font-size: 11px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.art-card .card-title {
+  margin: 10px 0 0; font-size: 12.5px; font-weight: 600; line-height: 1.3;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.art-card .card-sub {
+  margin: 3px 0 0; font-size: 11px; line-height: 1.3; color: var(--faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .artist-card { text-align: center; width: 116px; }
 .artist-card .cover { border-radius: 50%; }
 .artist-card .card-title { margin-top: 9px; }
 .artist-card .card-sub { text-transform: capitalize; }
 
+/* Play badge used by the "recently played" rail (generated by views/home.js):
+   it had no rule, so it rendered as an unstyled inline span. */
+.play-badge {
+  display: grid; place-items: center;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(10, 9, 11, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.30);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
+}
+
 /* ---------- made for you ---------- */
-.mixes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mixes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
 .mix-card {
   position: relative; overflow: hidden; text-align: left; border: 1px solid var(--line);
   border-radius: 20px; background: var(--surface); padding: 0;
+  color: inherit; font-family: inherit;
 }
 .mix-card .cover { width: 100%; aspect-ratio: 1.16; }
-.mix-body { padding: 12px 13px 14px; }
-.mix-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 18px; line-height: 1; }
-.mix-sub { margin-top: 5px; font-size: 10px; line-height: 1.45; color: var(--faint); }
+.mix-body { padding: var(--s3) 13px 14px; }
+.mix-title {
+  font-family: 'Instrument Serif', Georgia, serif; font-size: 18px; line-height: 1.1;
+  margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.mix-sub {
+  margin-top: 5px; font-size: 10px; line-height: 1.45; color: var(--faint);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .mix-mosaic { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; aspect-ratio: 1.16; width: 100%; }
 .mix-mosaic > div { overflow: hidden; }
 .mix-mosaic img { width: 100%; height: 100%; object-fit: cover; display: block; }

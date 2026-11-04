@@ -1,13 +1,28 @@
+/* ==========================================================================
+   FreePot — chrome that is pinned to the edges of the screen:
+   dock, mini player, detail layer, now playing, queue.
+
+   Every bottom-anchored rule consumes the MEASURED inset published by
+   assets/js/viewport.js (--sab) with env(safe-area-inset-bottom) as the
+   pre-script fallback. --dock-space is derived from the same --dock-bottom the
+   dock uses, so the mini player is always exactly one dock-height above the
+   dock, with no overlap and no gap, on every device and every toolbar state.
+   ========================================================================== */
+
 /* ---------- dock ---------- */
 .dock-wrap {
   position: fixed; left: 0; right: 0; z-index: 40;
+  /* --dock-bottom = measured --sab + 10px (base.css). Deliberately NOT
+     transitioned: when the measured inset corrects from 0 to 34px the dock
+     must snap into place, not glide — an animated bottom is what reads as
+     "the dock is floating up" during the iOS toolbar animation. */
   bottom: var(--dock-bottom);
-  padding-inline: 12px;
+  padding-inline: max(var(--s3), env(safe-area-inset-left, 0px)) max(var(--s3), env(safe-area-inset-right, 0px));
   pointer-events: none;
 }
 .dock {
   pointer-events: auto;
-  display: grid; grid-template-columns: repeat(3, 1fr); align-items: center;
+  display: grid; grid-template-columns: repeat(3, 1fr); align-items: stretch;
   width: 100%; max-width: 406px; margin: 0 auto;
   height: var(--dock-h); padding: 6px;
   border-radius: 23px;
@@ -19,6 +34,9 @@
 }
 .tab-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  /* 64px dock minus 12px padding = 52px of target height; full width of the
+     column (~118px) wide. Comfortably over the 44px minimum. */
+  min-height: var(--tap);
   border: 0; background: none; padding: 5px 0; border-radius: 17px;
   color: var(--faint); font-family: inherit;
   font-size: 8.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
@@ -27,19 +45,23 @@
 .tab-btn i, .tab-btn svg { width: 19px; height: 19px; }
 .tab-btn.active { color: var(--copper); background: rgba(217, 160, 102, 0.08); }
 .tab-btn.active i, .tab-btn.active svg { filter: drop-shadow(0 0 10px rgba(217, 160, 102, 0.4)); }
+.tab-btn:active { color: var(--muted); }
 
 /* ---------- mini player ---------- */
 .mini-wrap {
   position: fixed; left: 0; right: 0; z-index: 35;
-  bottom: calc(var(--dock-space) + 8px);
-  padding-inline: 12px;
+  /* --dock-space already includes --dock-gap, so this is exactly one gap
+     above the dock's top edge: no overlap, no double gap. */
+  bottom: var(--dock-space);
+  padding-inline: max(var(--s3), env(safe-area-inset-left, 0px)) max(var(--s3), env(safe-area-inset-right, 0px));
   pointer-events: none;
 }
 .mini {
   position: relative; pointer-events: auto;
   display: flex; align-items: center; gap: 11px;
   width: 100%; max-width: 406px; margin: 0 auto;
-  padding: 8px 10px 8px 8px;
+  padding: 8px 8px 8px 8px;
+  min-height: var(--mini-h);
   border-radius: 17px; overflow: hidden;
   background: rgba(24, 23, 28, 0.92);
   border: 1px solid var(--line-strong);
@@ -47,56 +69,86 @@
   -webkit-backdrop-filter: blur(30px) saturate(1.35);
   box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.9);
 }
-.mini-bar { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(243, 237, 227, 0.07); }
+.mini-bar { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: rgba(243, 237, 227, 0.07); border-radius: 17px 17px 0 0; overflow: hidden; }
 .mini-bar > div { height: 100%; width: 0; background: var(--copper); transition: width 0.25s linear; }
 .mini-art { width: 42px; height: 42px; border-radius: 10px; }
-.mini-meta { min-width: 0; flex: 1; }
-.mini-title { margin: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mini-sub { margin: 2px 0 0; font-size: 10px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mini-btn { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border: 0; background: none; color: var(--muted); border-radius: 50%; }
-.mini-btn i, .mini-btn svg { width: 17px; height: 17px; }
+.mini-meta { min-width: 0; flex: 1; padding-block: 2px; }
+.mini-title { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-sub { margin: 2px 0 0; font-size: 10px; line-height: 1.25; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 44px targets, pulled to the card edge so the row still reads as one bar. */
+.mini-btn {
+  display: grid; place-items: center;
+  width: var(--tap); height: var(--tap); flex-shrink: 0;
+  margin-block: -4px;
+  border: 0; background: none; color: var(--muted); border-radius: 50%;
+}
+.mini-btn i, .mini-btn svg { width: 18px; height: 18px; }
+.mini-btn:active { color: var(--paper); background: rgba(243, 237, 227, 0.06); }
 .mini-like.liked { color: var(--copper); }
 .mini-like.liked i, .mini-like.liked svg { fill: var(--copper); }
 
 /* ---------- detail layer ---------- */
 .detail {
-  position: fixed; inset: 0; z-index: 50; overflow-y: auto; overscroll-behavior: contain;
-  background: var(--ink);
+  position: fixed; inset: 0; z-index: 50;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  background: var(--ink);
+  /* inset:0 already stretches to the viewport; no vh unit is involved, so the
+     layer can never inherit a stale 100vh. */
+  overscroll-behavior: contain;
 }
 .detail-head {
   position: sticky; top: 0; z-index: 10;
   display: flex; align-items: center; gap: 6px;
   padding: 10px 14px 10px 12px;
-  padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  padding-top: calc(var(--sat, env(safe-area-inset-top, 0px)) + 10px);
   background: rgba(12, 11, 13, 0.72);
   backdrop-filter: blur(24px) saturate(1.3);
   -webkit-backdrop-filter: blur(24px) saturate(1.3);
   border-bottom: 1px solid rgba(243, 237, 227, 0.04);
 }
-.detail-head h2 { flex: 1; margin: 0; padding-inline: 8px; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.detail-head h2 { flex: 1; min-width: 0; margin: 0; padding-inline: 4px; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .back-btn {
-  display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0;
+  display: grid; place-items: center;
+  width: var(--tap); height: var(--tap); flex-shrink: 0;
+  margin-block: -5px;
   border-radius: 50%; border: 1px solid var(--line); background: rgba(243, 237, 227, 0.03);
   color: var(--paper);
 }
+.back-btn:active { background: rgba(243, 237, 227, 0.08); }
 .back-btn i, .back-btn svg { width: 17px; height: 17px; }
-.detail-content { width: 100%; max-width: 430px; margin: 0 auto; padding: 0 20px calc(150px + env(safe-area-inset-bottom, 0px)); }
+.detail-content {
+  width: 100%; max-width: 430px; margin: 0 auto;
+  padding: 0 20px calc(150px + var(--sab, env(safe-area-inset-bottom, 0px)));
+}
 
 /* detail page blocks */
 .detail-hero { display: flex; align-items: flex-end; gap: 15px; padding-top: 16px; }
 .detail-art { width: 126px; height: 126px; border-radius: 18px; box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.9); }
 .detail-art.round { border-radius: 50%; }
 .detail-eyebrow { margin: 0; font-size: 9px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--copper); }
-.detail-title { margin: 7px 0 0; font-family: 'Instrument Serif', Georgia, serif; font-size: 30px; line-height: 0.98; font-weight: 400; }
-.detail-sub { margin: 7px 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); }
+.detail-title {
+  margin: 7px 0 0;
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 30px; line-height: 0.98; font-weight: 400;
+  /* Long, unbroken artist/playlist names used to overflow the fixed-width
+     hero and clip against the edge of the card. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.detail-sub { margin: 7px 0 0; font-size: 11px; line-height: 1.5; color: var(--muted); overflow-wrap: anywhere; }
 .detail-sub a, .detail-sub button { color: var(--paper); font-weight: 600; }
-.detail-about { margin: 14px 0 0; font-size: 11px; line-height: 1.7; color: var(--faint); }
-.detail-actions { display: flex; align-items: center; gap: 9px; margin-top: 20px; }
+.detail-about { margin: 14px 0 0; font-size: 11px; line-height: 1.7; color: var(--faint); overflow-wrap: anywhere; }
+.detail-actions { display: flex; align-items: center; gap: 9px; margin-top: 20px; flex-wrap: wrap; }
 .btn-copper {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   border: 0; border-radius: 999px; background: var(--copper); color: #1a130d;
-  padding: 12px 24px; font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.03em;
+  padding: 12px 24px; min-height: var(--tap);
+  font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.03em;
   box-shadow: 0 12px 30px -10px rgba(217, 160, 102, 0.55);
 }
 .btn-copper i, .btn-copper svg { width: 14px; height: 14px; }
@@ -104,11 +156,13 @@
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   border-radius: 999px; border: 1px solid var(--line-strong);
   background: rgba(243, 237, 227, 0.03); color: var(--paper);
-  padding: 11px 17px; font-family: inherit; font-size: 11.5px; font-weight: 600;
+  padding: 11px 17px; min-height: var(--tap);
+  font-family: inherit; font-size: 11.5px; font-weight: 600;
 }
 .btn-ghost i, .btn-ghost svg { width: 15px; height: 15px; }
 .round-btn {
-  display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0;
+  display: grid; place-items: center;
+  width: var(--tap); height: var(--tap); flex-shrink: 0;
   border-radius: 50%; border: 1px solid var(--line-strong);
   background: rgba(243, 237, 227, 0.03); color: var(--paper);
 }
@@ -116,12 +170,16 @@
 .round-btn.on { background: var(--copper); border-color: var(--copper); color: #1a130d; }
 
 .detail-section-title { margin: 30px 0 10px; font-family: 'Instrument Serif', Georgia, serif; font-size: 20px; font-weight: 400; }
-.detail-note { margin: 40px 0; text-align: center; font-size: 12px; color: var(--faint); }
+.detail-note { margin: 40px 0; text-align: center; font-size: 12px; line-height: 1.6; color: var(--faint); }
 
 /* ---------- now playing ---------- */
 .np {
   position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column;
   overflow: hidden; background: var(--ink);
+  /* inset:0 stretches to the fixed-positioning containing block: no vh unit is
+     involved, so the overlay can never inherit a stale 100vh. Its inner
+     vertical budget is what uses the measured --vvh (below). */
+  overscroll-behavior: contain;
 }
 .np-bg {
   position: absolute; inset: -14%; width: 128%; height: 128%;
@@ -138,36 +196,64 @@
 .np-inner {
   position: relative; z-index: 2; display: flex; flex-direction: column;
   width: 100%; max-width: 430px; height: 100%; margin: 0 auto;
-  padding: calc(env(safe-area-inset-top, 0px) + 10px) 24px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  min-height: 0;
+  padding:
+    calc(var(--sat, env(safe-area-inset-top, 0px)) + 10px)
+    24px
+    calc(var(--sab, env(safe-area-inset-bottom, 0px)) + 18px);
 }
-.np-top { display: flex; align-items: center; justify-content: space-between; }
-.np-top-btn { display: grid; place-items: center; width: 40px; height: 40px; border: 0; background: none; color: var(--muted); border-radius: 50%; }
+.np-top { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.np-top-btn {
+  display: grid; place-items: center;
+  width: var(--tap); height: var(--tap); flex-shrink: 0;
+  border: 0; background: none; color: var(--muted); border-radius: 50%;
+}
 .np-top-btn i, .np-top-btn svg { width: 21px; height: 21px; }
-.np-source { text-align: center; }
+.np-source { text-align: center; min-width: 0; }
 .np-source span { display: block; font-size: 8.5px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--faint); }
-.np-source strong { display: block; margin-top: 3px; font-size: 11px; font-weight: 600; color: var(--muted); max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.np-stage { display: flex; flex: 1; align-items: center; justify-content: center; min-height: 0; padding: 14px 0; }
-.np-art-wrap { position: relative; width: min(76vw, 314px); aspect-ratio: 1; }
+.np-source strong { display: block; margin-top: 3px; font-size: 11px; font-weight: 600; color: var(--muted); max-width: 190px; margin-inline: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The art stage flexes; the control cluster below never shrinks. On a short
+   viewport (iPhone SE, 568px) the art is what gives way. */
+.np-stage { display: flex; flex: 1 1 auto; align-items: center; justify-content: center; min-height: 0; padding: 14px 0; }
+.np-art-wrap {
+  position: relative;
+  /* min() against the available *height* as well as the width, so the square
+     can shrink instead of pushing the controls off-screen (iPhone SE). */
+  width: min(76vw, 314px, 44vh);
+  width: min(76vw, 314px, 44dvh);
+  aspect-ratio: 1;
+  max-height: 100%;
+}
 .np-art {
   width: 100%; height: 100%; border-radius: 22px;
   box-shadow: 0 38px 90px -26px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
-.np-info { display: flex; align-items: flex-end; gap: 14px; }
+.np-info { display: flex; align-items: flex-end; gap: 14px; flex-shrink: 0; }
 .np-info-text { min-width: 0; flex: 1; }
-.np-title { margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-size: 27px; line-height: 1.02; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-title {
+  margin: 0;
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 27px; line-height: 1.02;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 .np-sub { margin: 6px 0 0; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .np-mode-label {
   margin: 5px 0 0;
   font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--copper);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.np-like { display: grid; place-items: center; width: 42px; height: 42px; border: 0; background: none; color: var(--faint); border-radius: 50%; }
+.np-like {
+  display: grid; place-items: center;
+  width: var(--tap); height: var(--tap); flex-shrink: 0;
+  border: 0; background: none; color: var(--faint); border-radius: 50%;
+}
 .np-like i, .np-like svg { width: 21px; height: 21px; }
 .np-like.liked { color: var(--copper); }
 .np-like.liked i, .np-like.liked svg { fill: var(--copper); }
 
-.np-progress { margin-top: 16px; }
-#progress-track { position: relative; display: flex; align-items: center; height: 20px; cursor: pointer; touch-action: none; }
+.np-progress { margin-top: 16px; flex-shrink: 0; }
+#progress-track { position: relative; display: flex; align-items: center; height: 24px; cursor: pointer; touch-action: none; }
 .progress-rail { position: absolute; left: 0; right: 0; height: 3px; border-radius: 999px; background: rgba(243, 237, 227, 0.14); }
 #progress-buffer { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; background: rgba(243, 237, 227, 0.14); }
 #progress-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; background: var(--copper); }
@@ -179,8 +265,8 @@
 #progress-track.dragging .progress-thumb { transform: scale(1.2); }
 .progress-times { display: flex; justify-content: space-between; margin-top: 3px; font-size: 9.5px; font-weight: 500; color: var(--faint); font-variant-numeric: tabular-nums; }
 
-.np-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-.np-btn { display: grid; place-items: center; width: 46px; height: 46px; border: 0; background: none; color: var(--paper); border-radius: 50%; transition: color 0.18s ease, transform 0.18s ease; }
+.np-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; flex-shrink: 0; }
+.np-btn { display: grid; place-items: center; width: var(--tap); height: var(--tap); border: 0; background: none; color: var(--paper); border-radius: 50%; transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease; }
 .np-btn i, .np-btn svg { width: 22px; height: 22px; }
 .np-btn.mode { position: relative; color: var(--faint); }
 .np-btn.mode.on {
@@ -198,42 +284,72 @@
 .np-btn:active { transform: scale(0.92); }
 .np-play {
   display: grid; place-items: center; width: 68px; height: 68px; border: 0; border-radius: 50%;
-  background: var(--paper); color: #12100d;
+  background: var(--paper); color: #12100d; flex-shrink: 0;
   box-shadow: 0 18px 42px -12px rgba(0, 0, 0, 0.9);
 }
 .np-play i, .np-play svg { width: 27px; height: 27px; }
-.np-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; gap: 2px; }
-.np-bottom-btn { display: grid; place-items: center; width: 40px; height: 40px; border: 0; background: none; color: var(--faint); border-radius: 50%; }
+.np-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; gap: 2px; flex-shrink: 0; }
+.np-bottom-btn {
+  display: grid; place-items: center;
+  width: var(--tap); height: var(--tap); flex-shrink: 0;
+  border: 0; background: none; color: var(--faint); border-radius: 50%;
+}
 .np-bottom-btn i, .np-bottom-btn svg { width: 18px; height: 18px; }
-.np-volume { display: flex; flex: 1; align-items: center; gap: 10px; padding-inline: 12px; }
+.np-bottom-btn:active { color: var(--paper); background: rgba(243, 237, 227, 0.06); }
+.np-volume { display: flex; flex: 1; min-width: 0; align-items: center; gap: 10px; padding-inline: 10px; }
 .np-volume i, .np-volume svg { width: 15px; height: 15px; color: var(--faint); flex-shrink: 0; }
 input[type='range'].vol {
-  -webkit-appearance: none; appearance: none; width: 100%; height: 3px; border-radius: 999px;
-  background: rgba(243, 237, 227, 0.16); outline: none;
+  -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; height: 24px;
+  background: transparent; outline: none; margin: 0;
+}
+/* Track + thumb are painted on the input itself; a real 24px-tall hit area
+   with a 3px visual rail keeps the slider tappable without growing the bar. */
+input[type='range'].vol::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 999px; background: rgba(243, 237, 227, 0.16);
 }
 input[type='range'].vol::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; width: 11px; height: 11px; border-radius: 50%;
+  -webkit-appearance: none; appearance: none;
+  width: 11px; height: 11px; margin-top: -4px; border-radius: 50%;
   background: var(--paper); cursor: pointer; box-shadow: 0 0 0 4px rgba(243, 237, 227, 0.12);
 }
+input[type='range'].vol::-moz-range-track {
+  height: 3px; border-radius: 999px; background: rgba(243, 237, 227, 0.16);
+}
+input[type='range'].vol::-moz-range-thumb {
+  width: 11px; height: 11px; border: 0; border-radius: 50%;
+  background: var(--paper); cursor: pointer;
+}
+input[type='range'].vol:focus-visible { outline: 2px solid var(--copper-soft); outline-offset: 2px; border-radius: 999px; }
 
 .np-queue {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
   display: flex; flex-direction: column;
-  height: 64%; max-width: 430px; margin: 0 auto;
+  height: 64%; max-height: calc(var(--vvh, 100dvh) - 72px);
+  max-width: 430px; margin: 0 auto;
   background: rgba(23, 22, 26, 0.98);
   border-radius: 28px 28px 0 0; border: 1px solid var(--line-strong); border-bottom: 0;
   backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: calc(var(--sab, env(safe-area-inset-bottom, 0px)) + 4px);
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
-.np-queue-head { padding: 10px 22px 12px; }
+.np-queue-head { padding: 10px 22px 12px; flex-shrink: 0; }
 .grabber { width: 38px; height: 4px; margin: 0 auto; border-radius: 999px; background: rgba(243, 237, 227, 0.16); }
-.np-queue-title { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.np-queue-title { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; gap: 8px; }
 .np-queue-title p { margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-size: 20px; }
-.np-queue-list { flex: 1; overflow-y: auto; padding: 0 12px 20px; overscroll-behavior: contain; }
+.np-queue-list {
+  flex: 1; min-height: 0;
+  overflow-y: auto; padding: 0 12px 20px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
 .np-queue-item {
   display: flex; width: 100%; align-items: center; gap: 11px;
-  padding: 6px 8px; border: 0; background: none; border-radius: 12px; text-align: left; color: inherit;
+  padding: 6px 8px; min-height: 52px;
+  border: 0; background: none; border-radius: 12px; text-align: left; color: inherit;
+  font-family: inherit;
 }
+.np-queue-item:active { background: rgba(243, 237, 227, 0.05); }
 .np-queue-item.current { background: rgba(217, 160, 102, 0.08); }
 
 /* ---------- play failure ---------- */
@@ -242,6 +358,7 @@ input[type='range'].vol::-webkit-slider-thumb {
   margin-top: 14px; padding: 10px 12px;
   border-radius: 14px; border: 1px solid rgba(224, 139, 127, 0.24);
   background: rgba(224, 139, 127, 0.07);
+  flex-shrink: 0;
 }
 .np-error-icon { display: grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; background: rgba(224, 139, 127, 0.12); color: #e08b7f; }
 .np-error-icon i, .np-error-icon svg { width: 15px; height: 15px; }
@@ -250,6 +367,7 @@ input[type='range'].vol::-webkit-slider-thumb {
 .np-error-sub { margin-top: 2px !important; font-size: 10px !important; font-weight: 400 !important; color: var(--faint); }
 .np-error-btn {
   display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  min-height: 36px;
   border: 0; border-radius: 999px; background: var(--copper); color: #1a130d;
   padding: 8px 13px; font-family: inherit; font-size: 10.5px; font-weight: 700;
 }
@@ -257,3 +375,38 @@ input[type='range'].vol::-webkit-slider-thumb {
 
 /* ---------- mini mode flag ---------- */
 .mini-mode { width: 13px; height: 13px; flex-shrink: 0; color: var(--copper); opacity: 0.9; }
+
+/* ==========================================================================
+   Short viewports — iPhone SE (568px), landscape phones, keyboard-open.
+   The art stage is the only thing that gives way; controls stay on screen.
+   ========================================================================== */
+@media (max-height: 700px) {
+  .np-inner { padding-top: calc(var(--sat, env(safe-area-inset-top, 0px)) + 4px); padding-bottom: calc(var(--sab, env(safe-area-inset-bottom, 0px)) + 8px); }
+  .np-stage { padding: 8px 0; }
+  .np-art-wrap { width: min(62vw, 240px, 40vh); width: min(62vw, 240px, 40dvh); }
+  .np-title { font-size: 23px; }
+  .np-progress { margin-top: 10px; }
+  .np-controls { margin-top: 6px; }
+  .np-play { width: 60px; height: 60px; }
+  .np-play i, .np-play svg { width: 24px; height: 24px; }
+  .np-bottom { margin-top: 8px; }
+}
+
+@media (max-height: 560px) {
+  .np-stage { padding: 2px 0; }
+  .np-art-wrap { width: min(46vw, 170px, 34vh); width: min(46vw, 170px, 34dvh); }
+  .np-title { font-size: 20px; }
+  .np-sub { margin-top: 3px; font-size: 11px; }
+  .np-progress { margin-top: 6px; }
+  .np-controls { margin-top: 2px; }
+  .np-play { width: 52px; height: 52px; }
+  .np-bottom { margin-top: 4px; }
+  .np-queue { height: 78%; }
+}
+
+/* Landscape phones: two-column-less but very short — keep the bar compact. */
+@media (orientation: landscape) and (max-height: 460px) {
+  .np-stage { padding: 0; }
+  .np-art-wrap { width: min(30vw, 150px, 52vh); width: min(30vw, 150px, 52dvh); }
+  .np-info { align-items: center; }
+}

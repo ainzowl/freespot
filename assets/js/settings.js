@@ -16,6 +16,12 @@ const defaults = {
   // default is what makes Reset meaningful without losing the working default.
   providerKey: '',
   format: 'mp3',
+
+  // Where the DownVid API is reached. DownVid sends no CORS headers, so it can
+  // only be called through a relay that adds them (see relay/README.md). Empty
+  // means the same-origin development relay at `/__relay`; a deployed Worker URL
+  // goes here once the app is hosted.
+  downvidRelay: '',
 };
 
 const settings = Object.assign({}, defaults, load(SETTINGS_KEY, {}));

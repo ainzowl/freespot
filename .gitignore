@@ -1,10 +1,20 @@
-# Local dev only.
-server/
+# Dependencies. The dev helper keeps its own install under server/.
+node_modules/
+server/node_modules/
+
+# The dev server itself IS tracked. `npm start` is how the local CORS relay runs,
+# and DownVid cannot be reached without it — so a fresh clone needs these files to
+# have a working app. Ignoring the whole folder (as this used to) meant the relay
+# never got committed and the app silently fell back to mirrors.
+!server/index.js
+!server/config.js
+!server/package.json
+
+# Scratch output from local verification runs, not part of the app.
+.verify/
+.tmp-probe/
 
 # OS / editor noise
 .DS_Store
 Thumbs.db
 *.log
-
-# Dependencies (installed under server/ for the dev helper)
-node_modules/

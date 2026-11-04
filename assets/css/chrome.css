@@ -1,27 +1,59 @@
+/* ==========================================================================
+   FreePot — page chrome: header, tab heads, sections.
+   Top padding uses the MEASURED --sat (assets/js/viewport.js) with
+   env(safe-area-inset-top) as the pre-script fallback.
+   ========================================================================== */
+
 /* ---------- header ---------- */
-.header { padding-top: calc(env(safe-area-inset-top, 0px) + 18px); padding-inline: 20px; }
-.header-top { display: flex; align-items: center; justify-content: space-between; }
-.brand { display: inline-flex; align-items: center; gap: 9px; }
+.header {
+  padding-top: calc(var(--sat, env(safe-area-inset-top, 0px)) + 18px);
+  padding-inline: 20px;
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--tap); }
+.brand { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
 .brand-disc {
   width: 17px; height: 17px; border-radius: 50%;
   background: conic-gradient(from 40deg, var(--copper-soft), var(--copper-deep), var(--copper), var(--copper-soft));
   position: relative;
+  flex-shrink: 0;
   box-shadow: 0 0 18px rgba(217, 160, 102, 0.25);
 }
 .brand-disc::after {
   content: ''; position: absolute; inset: 5.5px; border-radius: 50%; background: var(--ink);
 }
-.brand-name { font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
-
-.avatar-btn {
-  width: 36px; height: 36px; border-radius: 50%;
-  border: 1px solid var(--line-strong);
-  background: rgba(243, 237, 227, 0.04);
-  display: grid; place-items: center; color: var(--muted);
+.brand-name {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.greeting { margin: 22px 0 0; font-size: 38px; line-height: 1.02; color: var(--paper); }
-.greeting-sub { margin-top: 7px; font-size: 12px; color: var(--faint); letter-spacing: 0.01em; }
+/* 44px hit area, drawn as a 36px disc so the header stays light. */
+.avatar-btn {
+  position: relative;
+  width: var(--tap); height: var(--tap); flex-shrink: 0;
+  border-radius: 50%;
+  border: 0;
+  background: none;
+  display: grid; place-items: center; color: var(--muted);
+  margin-right: -4px;
+}
+.avatar-btn::before {
+  content: '';
+  position: absolute; inset: 4px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: rgba(243, 237, 227, 0.04);
+}
+.avatar-btn > * { position: relative; z-index: 1; }
+.avatar-btn:active::before { background: rgba(243, 237, 227, 0.09); }
+
+.greeting {
+  margin: 22px 0 0;
+  font-size: 38px; line-height: 1.02; color: var(--paper);
+  /* Long, generated greetings and long words must wrap, not clip. */
+  overflow-wrap: anywhere;
+}
+.greeting-sub { margin-top: 7px; font-size: 12px; line-height: 1.45; color: var(--faint); letter-spacing: 0.01em; }
 
 /* Compact header used by non-home tabs */
 .tab-head {
@@ -29,17 +61,45 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 0;
+  min-height: var(--tap);
+  padding: calc(var(--sat, env(safe-area-inset-top, 0px)) + 18px) 20px 0;
 }
+.tab-head > div { min-width: 0; }
 .tab-head .page-title { margin: 0; font-size: 34px; }
-.tab-head-sub { margin: 7px 0 0; font-size: 10.5px; color: var(--faint); }
+.tab-head-sub { margin: 7px 0 0; font-size: 10.5px; line-height: 1.45; color: var(--faint); }
 
 /* ---------- sections ---------- */
 .section { margin-top: 34px; padding-inline: 20px; }
-.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.section-title { margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; letter-spacing: -0.01em; line-height: 1; }
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 14px;
+}
+.section-title { margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; letter-spacing: -0.01em; line-height: 1.1; min-width: 0; }
+/* Text button: keeps its visual size and baseline alignment, but gets a 44px
+   tall touch area from an invisible pseudo-element so the row still works as a
+   thumb target on iOS without changing the section rhythm. */
 .section-link {
+  position: relative;
   border: 0; background: none; padding: 0;
   font-size: 9.5px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--copper);
+  color: var(--copper); font-family: inherit;
+  white-space: nowrap; flex-shrink: 0;
+}
+.section-link::after {
+  content: '';
+  position: absolute;
+  left: -10px; right: -10px;
+  top: 50%;
+  height: var(--tap);
+  transform: translateY(-50%);
+}
+.section-link:active { color: var(--copper-soft); }
+
+/* Trailing "FreePot ·" line — one shared distance from the last section on
+   every page (all views previously used a different inline spacing). */
+.page-footer {
+  display: block;
+  margin: var(--s7) 0 0;
+  text-align: center;
+  color: var(--faint);
 }

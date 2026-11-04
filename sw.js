@@ -9,7 +9,7 @@
 // from that cache, but this route is the fallback for anything that references
 // `/__audio/<id>` directly.
 
-const SHELL_CACHE = 'freepot-shell-v9';
+const SHELL_CACHE = 'freepot-shell-v11';
 const AUDIO_CACHE = 'freepot-audio-v1';
 
 // The app can be served from the domain root (local dev, user pages) or from a
@@ -37,6 +37,7 @@ const SHELL = [
   './assets/js/config.js',
   './assets/js/device.js',
   './assets/js/downloads.js',
+  './assets/js/downvid.js',
   './assets/js/events.js',
   './assets/js/invidious.js',
   './assets/js/library.js',
@@ -52,6 +53,7 @@ const SHELL = [
   './assets/js/sources.js',
   './assets/js/ui.js',
   './assets/js/util.js',
+  './assets/js/viewport.js',
   './assets/js/ytplayer.js',
   './assets/js/views/detail.js',
   './assets/js/views/home.js',
@@ -81,20 +83,86 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  const request = event.request;
+/**
+ * Serve a downloaded track from the cache, honouring `Range`.
+ *
+ * A cached entry is one complete response, so a partial request is answered by
+ * slicing it. `Accept-Ranges` is advertised on every reply so the media element
+ * knows it can seek.
+ */
+async function serveAudio(request) {
+  const cache = await caches.open(AUDIO_CACHE);
+  const hit = await cache.match(request, { ignoreVary: true });
+  if (!hit) return new Response('', { status: 404 });
+
+  const blob = await hit.blob();
+  if (!blob.size) return new Response('', { status: 404 });
+
+  const type = hit.headers.get('content-type') || 'audio/mp4';
+  const range = request.headers.get('range');
+
+  if (!range) {
+    return new Response(blob, {
+      status: 200,
+      headers: {
+        'Content-Type': type,
+        'Content-Length': String(blob.size),
+        'Accept-Ranges': 'bytes',
+      },
+    });
+  }
+
+  const match = /bytes=(\d*)-(\d*)/.exec(range);
+  if (!match) {
+    return new Response(blob, {
+      status: 200,
+      headers: {
+        'Content-Type': type,
+        'Content-Length': String(blob.size),
+        'Accept-Ranges': 'bytes',
+      },
+    });
+  }
+
+  const startRaw = match[1];
+  const endRaw = match[2];
+  let start = startRaw ? Number(startRaw) : 0;
+  let end = endRaw ? Number(endRaw) : blob.size - 1;
+
+  if (!startRaw && endRaw) {
+    // Suffix range: "bytes=-500" means the last 500 bytes.
+    start = Math.max(0, blob.size - Number(endRaw));
+    end = blob.size - 1;
+  }
+
+  start = Math.max(0, Math.min(start, blob.size - 1));
+  end = Math.max(start, Math.min(end, blob.size - 1));
+
+  const slice = blob.slice(start, end + 1);
+  return new Response(slice, {
+    status: 206,
+    headers: {
+      'Content-Type': type,
+      'Content-Length': String(slice.size),
+      'Content-Range': `bytes ${start}-${end}/${blob.size}`,
+      'Accept-Ranges': 'bytes',
+    },
+  });
+}
+
+self.addEventListener('fetch', (event) => {  const request = event.request;
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
   const sameOrigin = url.origin === self.location.origin;
 
   // Downloaded audio: served from the cache, never the network.
+  //
+  // Range requests are answered here rather than passed through, because the
+  // cache stores one complete response. Without this the audio element cannot
+  // seek a downloaded track, and browsers refuse to stream some formats at all.
   if (sameOrigin && url.pathname.startsWith(AUDIO_PREFIX)) {
-    event.respondWith(
-      caches.open(AUDIO_CACHE)
-        .then((cache) => cache.match(request))
-        .then((hit) => hit || new Response('', { status: 404 }))
-    );
+    event.respondWith(serveAudio(request));
     return;
   }
 

@@ -8,7 +8,7 @@ import { on } from './events.js';
 import { $, $$ } from './util.js';
 import { renderIcons, coverForTrack } from './ui.js';
 import { refreshDownloadIcons, toggleDownload, downloadIds, downloadTracks, downloadAll, cancelDownloads } from './downloads.js';
-import { onDownloadChange, isDownloaded } from './media.js';
+import { onDownloadChange, isDownloaded, resumePendingDownloads, initDownloadLifecycle } from './media.js';
 import { getSettings } from './settings.js';
 import { hydrateTracks, saveTracksNow } from './catalog.js';
 import * as Router from './router.js';
@@ -328,10 +328,39 @@ onDownloadChange((kind) => {
 });
 
 // Persist the track registry before the tab goes away.
-window.addEventListener('pagehide', () => saveTracksNow());
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') saveTracksNow();
+window.addEventListener('pagehide', () => {
+  saveTracksNow();
+  player.persistSession();
 });
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    saveTracksNow();
+    player.persistSession();
+    player.prepareForBackground();
+    return;
+  }
+  // Coming back from the background: the OS may have dropped the media stream
+  // and paused the transfer, so both engines get a chance to re-attach.
+  player.resumeFromBackground();
+});
+
+// The Page Lifecycle API fires these when the browser freezes a background tab
+// and when it comes back. `resume` is the reliable wake-up signal on Android and
+// in installed PWAs, where `visibilitychange` alone is sometimes skipped.
+document.addEventListener('freeze', () => {
+  player.persistSession();
+  player.prepareForBackground();
+});
+document.addEventListener('resume', () => player.resumeFromBackground());
+
+window.addEventListener('online', () => player.resumeFromBackground());
+window.addEventListener('pagehide', () => player.prepareForBackground());
+
+// Downloads survive the screen locking or the app being switched away from.
+// The lifecycle listeners inside media.js stop the clock while the page is
+// asleep, so a transfer that was paused is resumed rather than counted as failed.
+initDownloadLifecycle();
 
 // ---------------------------------------------------------------------------
 // Inputs
@@ -417,6 +446,16 @@ async function boot() {
   const wanted = new Set([...state.liked, ...state.recent]);
   for (const playlist of state.playlists) for (const id of playlist.ids) wanted.add(id);
   hydrateTracks(Array.from(wanted)).catch(() => {});
+
+  // Downloads that were interrupted by a reload, a crash, or the OS suspending
+  // the app are put back on the queue. Their stored parts are reused, so the
+  // transfer continues instead of starting over.
+  resumePendingDownloads().then((resumed) => {
+    if (resumed) {
+      toast(`Resuming ${resumed} download${resumed === 1 ? '' : 's'}`, 'download');
+      refreshDownloadIcons();
+    }
+  }).catch(() => {});
 
   const tab = new URLSearchParams(location.search).get('tab');
   if (tab) goTab(tab);

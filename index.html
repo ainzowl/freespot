@@ -40,7 +40,7 @@
           <p class="brand-name">FreePot</p>
         </div>
         <button class="avatar-btn btn-press" onclick="__goTab('device')" aria-label="Device and storage">
-          <i data-lucide="sliders-horizontal" style="width:15px;height:15px"></i>
+          <i data-lucide="sliders-horizontal" class="icon-15"></i>
         </button>
       </div>
       <h1 id="header-greeting" class="display greeting">Good evening.</h1>
@@ -50,7 +50,7 @@
     <!-- ============ HOME ============ -->
     <section id="view-home" class="view">
 
-      <div class="quick-grid" style="margin-top:4px">
+      <div class="quick-grid">
         <button onclick="__playLiked()" class="quick btn-press">
           <span class="quick-art"><img data-art="liked" alt="" draggable="false" /><i data-lucide="heart" style="fill:currentColor"></i></span>
           <span class="quick-label">Liked</span>
@@ -74,7 +74,7 @@
           <h2 class="section-title">Recently played</h2>
           <button class="section-link" onclick="__playShuffle()">Shuffle all</button>
         </div>
-        <div id="recent-row" class="rail snap-row no-scrollbar hscroll" style="padding-inline:0"></div>
+        <div id="recent-row" class="rail snap-row no-scrollbar hscroll"></div>
       </div>
 
       <div class="section">
@@ -85,7 +85,7 @@
         <div id="top-list" class="track-list"></div>
       </div>
 
-      <p class="label" style="text-align:center;margin-top:34px;color:var(--faint)">FreePot · for the love of it</p>
+      <p class="label page-footer">FreePot · for the love of it</p>
     </section>
 
     <!-- ============ SEARCH ============ -->
@@ -96,15 +96,15 @@
           <p class="tab-head-sub">Find a song, artist or playlist</p>
         </div>
       </div>
-      <div style="padding:18px 20px 0">
+      <div class="search-wrap">
         <div class="search-field">
           <i data-lucide="search"></i>
           <input id="search-input" placeholder="Songs, artists, albums…" autocomplete="off" spellcheck="false" />
         </div>
       </div>
-      <div id="search-results" class="hidden" style="padding:8px 20px 0"></div>
-      <div id="browse-wrap" style="padding:26px 20px 0">
-        <h2 class="label" style="margin:0 0 14px;color:var(--faint)">Browse all</h2>
+      <div id="search-results" class="hidden search-results"></div>
+      <div id="browse-wrap" class="browse-wrap">
+        <h2 class="label browse-title">Browse all</h2>
         <div id="browse-grid" class="genre-grid"></div>
       </div>
     </section>
@@ -120,14 +120,14 @@
           <i data-lucide="plus"></i>
         </button>
       </div>
-      <div class="lib-chips no-scrollbar" style="margin-top:20px">
+      <div class="lib-chips no-scrollbar">
         <button class="chip active" data-lib="playlists" onclick="__openLibTab('playlists')">Playlists</button>
         <button class="chip" data-lib="songs" onclick="__openLibTab('songs')">Songs</button>
         <button class="chip" data-lib="artists" onclick="__openLibTab('artists')">Artists</button>
         <button class="chip" data-lib="albums" onclick="__openLibTab('albums')">Albums</button>
         <button class="chip" data-lib="downloads" onclick="__openLibTab('downloads')">Downloads</button>
       </div>
-      <div id="lib-content" style="padding:16px 20px 0"></div>
+      <div id="lib-content" class="lib-content"></div>
     </section>
 
     <!-- ============ THIS DEVICE ============ -->
@@ -139,25 +139,25 @@
         </div>
       </div>
 
-      <p style="margin:12px 20px 0;font-size:11px;line-height:1.65;color:var(--faint)">
+      <p class="device-note">
         Everything you save lives in this browser. No sign-in, nothing synced, nothing sent anywhere.
       </p>
 
-      <div class="stats" style="margin-top:22px;padding-inline:20px">
+      <div class="stats device-stats">
         <div class="stat-card"><p class="stat-num" id="stat-liked">0</p><p class="stat-label">Liked</p></div>
         <div class="stat-card"><p class="stat-num" id="stat-playlists">6</p><p class="stat-label">Sets</p></div>
         <div class="stat-card"><p class="stat-num" id="stat-followed">0</p><p class="stat-label">Following</p></div>
         <div class="stat-card"><p class="stat-num" id="stat-offline">0</p><p class="stat-label">Offline</p></div>
       </div>
 
-      <div style="margin-top:22px;padding-inline:20px">
+      <div class="device-list">
         <button onclick="__openPlaylist('liked')" class="list-row">
           <div class="cover cover-ring list-art"><img data-art="liked" alt="" draggable="false" /></div>
           <div class="list-meta">
             <p class="list-title">Liked Songs</p>
             <p class="list-sub" id="liked-sub">Playlist · 0 songs</p>
           </div>
-          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+          <i data-lucide="chevron-right" class="chev"></i>
         </button>
         <button onclick="__openLibTab('downloads');__goTab('library')" class="list-row">
           <div class="cover cover-ring list-art"><img data-art="downloads" alt="" draggable="false" /></div>
@@ -165,59 +165,59 @@
             <p class="list-title">Downloads</p>
             <p class="list-sub" id="dl-sub">Listen offline, anywhere</p>
           </div>
-          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+          <i data-lucide="chevron-right" class="chev"></i>
         </button>
         <button onclick="__openLibTab('artists');__goTab('library')" class="list-row">
-          <div class="cover cover-ring list-art" style="border-radius:50%"><img data-art="followed" alt="" draggable="false" /></div>
+          <div class="cover cover-ring list-art round"><img data-art="followed" alt="" draggable="false" /></div>
           <div class="list-meta">
             <p class="list-title">Followed artists</p>
             <p class="list-sub" id="followed-sub">Artists you keep coming back to</p>
           </div>
-          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+          <i data-lucide="chevron-right" class="chev"></i>
         </button>
       </div>
 
-      <div class="settings" style="margin:22px 20px 0">
+      <div class="settings device-settings">
         <div class="settings-row">
           <div class="settings-icon"><i data-lucide="wifi-off"></i></div>
-          <div style="flex:1">
-            <p class="settings-title" style="margin:0">Offline mode</p>
+          <div class="settings-body">
+            <p class="settings-title">Offline mode</p>
             <p class="settings-hint">Only play downloaded songs</p>
           </div>
           <button onclick="__offlineToggle()" id="offline-switch" class="chip">OFF</button>
         </div>
         <button onclick="__openLibTab('downloads');__goTab('library')" class="settings-row">
           <div class="settings-icon"><i data-lucide="download"></i></div>
-          <div style="flex:1">
-            <p class="settings-title" style="margin:0">Downloads</p>
+          <div class="settings-body">
+            <p class="settings-title">Downloads</p>
             <p class="settings-hint" id="download-count-hint">No tracks downloaded</p>
           </div>
-          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+          <i data-lucide="chevron-right" class="chev"></i>
         </button>
         <button onclick="__openKeySheet()" class="settings-row">
           <div class="settings-icon"><i data-lucide="key-round"></i></div>
-          <div style="flex:1">
-            <p class="settings-title" style="margin:0">Download provider</p>
+          <div class="settings-body">
+            <p class="settings-title">Download provider</p>
             <p class="settings-hint">Optional - needs a paid key</p>
           </div>
           <span id="provider-hint" class="settings-value">Not configured</span>
-          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+          <i data-lucide="chevron-right" class="chev"></i>
         </button>
         <div class="settings-row">
           <div class="settings-icon"><i data-lucide="database"></i></div>
-          <div style="flex:1">
-            <p class="settings-title" style="margin:0">Storage used</p>
+          <div class="settings-body">
+            <p class="settings-title">Storage used</p>
             <p class="settings-hint" id="storage-hint">Calculating…</p>
           </div>
         </div>
         <button onclick="__openStorageSheet()" class="settings-row">
           <div class="settings-icon"><i data-lucide="eraser"></i></div>
           <span class="settings-title">Storage options</span>
-          <i data-lucide="chevron-right" style="width:15px;height:15px;color:var(--faint)"></i>
+          <i data-lucide="chevron-right" class="chev"></i>
         </button>
       </div>
 
-      <p class="label" style="text-align:center;margin-top:26px;color:var(--faint)">FreePot · built for quiet listening</p>
+      <p class="label page-footer">FreePot · built for quiet listening</p>
     </section>
 
   </main>
@@ -335,7 +335,7 @@
         <div class="grabber"></div>
         <div class="np-queue-title">
           <p>Up next</p>
-          <button class="icon-ghost" onclick="__closeQueue()" aria-label="Close queue"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+          <button class="icon-ghost" onclick="__closeQueue()" aria-label="Close queue"><i data-lucide="x" class="icon-18"></i></button>
         </div>
       </div>
       <div id="np-queue-list" class="np-queue-list no-scrollbar"></div>
@@ -365,7 +365,7 @@
         <div class="grabber"></div>
         <div class="sheet-title">
           <p id="sheet-title">Menu</p>
-          <button class="icon-ghost" onclick="__closeSheet()" aria-label="Close"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+          <button class="icon-ghost" onclick="__closeSheet()" aria-label="Close"><i data-lucide="x" class="icon-18"></i></button>
         </div>
       </div>
       <div id="sheet-body" class="sheet-body no-scrollbar"></div>
@@ -393,6 +393,9 @@
     </div>
   </div>
 
+  <!-- Runs first so the measured safe-area/viewport variables exist before
+       main.js renders anything. Self-running; imports and exports nothing. -->
+  <script type="module" src="assets/js/viewport.js"></script>
   <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

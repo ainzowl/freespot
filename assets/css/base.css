@@ -1,4 +1,16 @@
+/* ==========================================================================
+   FreePot — foundations: tokens, reset, typography, shared utilities.
+
+   Bottom chrome (dock, mini player, toast) and the full-bleed overlays are
+   positioned from custom properties that assets/js/viewport.js MEASURES at
+   runtime (--sab / --sat / --vvh / --vlh / --vvo). env(safe-area-inset-*) is
+   kept only as the pre-script fallback: on iOS a one-shot env() read is wrong
+   for the first frames after paint (it reads 0 until the toolbar/standalone
+   chrome settles, then jumps to 34px), which is what made the dock float.
+   ========================================================================== */
+
 :root {
+  /* palette */
   --ink: #0c0b0d;
   --ink-2: #111014;
   --surface: #17161a;
@@ -8,14 +20,46 @@
   --line-strong: rgba(243, 237, 227, 0.15);
   --paper: #f3ede3;
   --muted: #a49d92;
-  --faint: #6b655c;
+  /* Was #6b655c: 3.4:1 on --ink, below WCAG AA for the 9-12px sizes it is
+     used at throughout the lists/settings/queue chrome. #8a8378 measures
+     5.2:1 on --ink and 4.8:1 on --surface. */
+  --faint: #8a8378;
   --copper: #d9a066;
   --copper-soft: #f0cfa8;
   --copper-deep: #a97442;
+
+  /* measured viewport contract — viewport.js writes these inline on <html>;
+     the values below only serve first paint and the no-JS case.
+     They are deliberately plain `100vh`: an unsupported unit here would make
+     every `var(--vvh, …)` invalid-at-computed-value-time and drop the whole
+     declaration, which is worse than the stale value we are guarding against. */
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sat: env(safe-area-inset-top, 0px);
+  --vvh: 100vh; /* visual viewport height  */
+  --vlh: 100vh; /* layout viewport height  */
+  --vvo: 0px;   /* visual viewport offsetTop */
+
+  /* dock geometry — the ONLY place the bottom chrome gets its numbers from.
+     --dock-space is derived from the same --dock-bottom the dock itself uses,
+     so the mini player can never overlap or gap against the dock. */
   --dock-h: 64px;
   --dock-gap: 8px;
-  --dock-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  --dock-bottom-gap: 10px;
+  --mini-h: 60px;
+  --dock-bottom: calc(var(--sab, env(safe-area-inset-bottom, 0px)) + var(--dock-bottom-gap));
   --dock-space: calc(var(--dock-h) + var(--dock-gap) + var(--dock-bottom));
+
+  /* spacing scale — prefer these over ad-hoc px in new rules */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 20px;
+  --s6: 24px;
+  --s7: 32px;
+  --tap: 44px; /* minimum touch target */
+
+  color-scheme: dark;
 }
 
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -23,17 +67,36 @@
 .hidden { display: none !important; }
 .text-copper { color: var(--copper); }
 
-html, body { overscroll-behavior-y: none; }
-html.shell-locked, body.shell-locked { overflow: hidden; }
+/* dvh-safe shell: never trust a stale 100vh (iOS standalone reports a
+   viewport taller than the visible area, which is a second source of the
+   dock sitting too high). */
+html {
+  height: -webkit-fill-available;
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
 
 body {
   margin: 0;
+  /* Oldest first, most-accurate last: on legacy iOS the -webkit- value wins
+     (dvh unsupported), on anything modern 100dvh overrides it. Putting
+     -webkit-fill-available last would re-introduce the stale value we are
+     trying to escape. */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
   font-family: 'Inter', -apple-system, system-ui, sans-serif;
   background: var(--ink);
   color: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
 }
+
+html.shell-locked, body.shell-locked { overflow: hidden; }
 
 body::after {
   content: '';
@@ -87,7 +150,13 @@ body[data-view='device'] { --tint-a: rgba(122, 122, 132, 0.12); --tint-b: rgba(9
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .snap-row { scroll-snap-type: x mandatory; }
 .snap-row > * { scroll-snap-align: start; }
-.hscroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.hscroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--s5);
+}
 
 .btn-press { transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease; }
 .btn-press:active { transform: scale(0.96); opacity: 0.86; }
@@ -96,4 +165,99 @@ body[data-view='device'] { --tint-a: rgba(122, 122, 132, 0.12); --tint-b: rgba(9
   background: rgba(17, 16, 20, 0.78);
   backdrop-filter: blur(26px) saturate(1.3);
   -webkit-backdrop-filter: blur(26px) saturate(1.3);
+}
+
+/* ---------- touch behaviour ---------- */
+/* Suppress the iOS long-press callout + accidental text selection on chrome
+   and artwork only. Text (inputs, lyrics, descriptions) stays selectable —
+   see the explicit re-enable below. */
+button,
+[role='button'],
+.cover,
+.dock,
+.mini,
+.detail-head,
+.hero-card,
+.art-card,
+.quick,
+.genre-tile,
+.tab-btn,
+.np-queue-item,
+.track-row,
+.list-row,
+.sheet-row,
+.settings-row,
+.chip,
+.icon-ghost,
+.back-btn,
+.round-btn,
+.mini-btn,
+.np-btn,
+.np-play,
+.np-top-btn,
+.np-bottom-btn,
+.np-like,
+.avatar-btn,
+.section-link {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+select,
+[contenteditable='true'],
+.search-field input,
+.modal-input,
+.about-description,
+.lyric-line,
+.lyric-block {
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ---------- focus ---------- */
+:where(a, button, [role='button'], input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--copper-soft);
+  outline-offset: 3px;
+}
+/* Chrome that lives inside an overflow-hidden / tight container: pull the
+   ring inward so it is never clipped. */
+.dock :focus-visible,
+.mini :focus-visible,
+.detail-head :focus-visible,
+.np :focus-visible,
+.chip:focus-visible,
+.icon-ghost:focus-visible,
+.back-btn:focus-visible,
+.mini-btn:focus-visible,
+.np-bottom-btn:focus-visible,
+.tab-btn:focus-visible,
+.section-link:focus-visible {
+  outline-offset: -3px;
+}
+/* Text fields draw their own focus ring on the field shell. */
+.search-field input:focus-visible,
+.modal-input:focus-visible { outline: none; }
+
+/* Never leave a keyboard user without a ring — including programmatic focus. */
+:focus:not(:focus-visible) { outline: none; }
+
+::selection { background: rgba(217, 160, 102, 0.28); color: var(--paper); }
+
+/* Unlit/unavailable controls read as unavailable everywhere. */
+[disabled],
+[aria-disabled='true'] { opacity: 0.45; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

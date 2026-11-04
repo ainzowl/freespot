@@ -1,10 +1,21 @@
-/* ---------- artwork ---------- */
+/* ==========================================================================
+   FreePot — artwork.
+   Cover art is decorative chrome: no long-press callout, no drag, no selection.
+   ========================================================================== */
+
 .cover {
   position: relative;
   overflow: hidden;
   background: linear-gradient(150deg, #2a2730, #151418);
   isolation: isolate;
   flex-shrink: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Rounding artefacts on iOS: clip children to the radius without a repaint
+     seam during the scale press animation. */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 .cover > img {
   display: block;
@@ -12,7 +23,10 @@
   height: 100%;
   object-fit: cover;
   user-select: none;
+  -webkit-user-select: none;
   -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  pointer-events: none; /* taps land on the row/button, never the image */
 }
 .cover::after {
   content: '';
@@ -26,3 +40,13 @@
   background-size: 140px 140px;
 }
 .cover-ring { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09); }
+
+/* Empty artwork must still hold its box (track rows and cards are laid out
+   before the art resolver runs). */
+.cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(150deg, #2a2730, #151418);
+  z-index: -1;
+}
